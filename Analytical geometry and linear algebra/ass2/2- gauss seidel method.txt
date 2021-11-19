@@ -1,0 +1,928 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+double **createMatrix(int,int);
+void print(double **,int,int);
+class Matrix
+{
+private:
+    int rows;
+    int columns;
+    double **mat;
+public:
+    Matrix() {}
+
+    Matrix(int rows,int columns)
+    {
+        this->rows = rows;
+        this->columns = columns;
+        mat = new double* [rows];
+        for(int i=0; i<rows; i++)
+        {
+            mat[i] = new double [columns];
+            memset(mat[i],0,columns);
+        }
+    };
+
+    void setRows(int r)
+    {
+        this->rows = r;
+    }
+
+    int getRows()
+    {
+        return this->rows;
+    }
+
+    void setColumns(int c)
+    {
+        this->columns = c;
+    }
+
+    int getColumns()
+    {
+        return this->columns;
+    }
+
+    void setMatrix(double ** matrix)
+    {
+        this->mat = matrix;
+    }
+
+    double ** getMatrix()
+    {
+        return mat;
+    }
+
+    void addEntry(int row,int col,double value)
+    {
+        mat[row][col] = value;
+    }
+
+    Matrix operator +(Matrix  &obj)
+    {
+        Matrix ans;
+        double **res = createMatrix(rows,columns);
+        res = addMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    double ** addMatrices(double **M,int rows,int columns)
+    {
+
+        if(rows!=this->rows || columns!=this->columns)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return nullptr;
+        }
+        else
+        {
+            double ** result = 0;
+            result = createMatrix(rows,columns);
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    result[i][j] = this->mat[i][j] + M[i][j];
+                }
+            }
+            return result;
+        }
+    }
+
+    Matrix operator -(Matrix  &obj)
+    {
+        Matrix ans;
+        double **res = createMatrix(rows,columns);
+        res = subtractMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    double ** subtractMatrices(double **M,int rows,int columns)
+    {
+
+        if(rows!=this->rows || columns!=this->columns)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return 0;
+        }
+        else
+        {
+            double ** result = 0;
+            result = createMatrix(rows,columns);
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    result[i][j] = this->mat[i][j] - M[i][j];
+                }
+            }
+            return result;
+        }
+    }
+
+    Matrix operator *(Matrix  &obj)
+    {
+        Matrix ans;
+        double **res = createMatrix(rows,columns);
+        res = multiplyMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    double ** multiplyMatrices(double **M,int rows,int columns)
+    {
+        if(this->columns!=rows)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return 0;
+        }
+        else
+        {
+            double ** result = 0;
+            result = createMatrix(this->rows,columns);
+            for(int i=0; i<this->rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    double res = 0;
+                    for(int k=0; k<rows; k++)
+                    {
+                        res+=this->mat[i][k]*M[k][j];
+                    }
+                    result[i][j] = res;
+                }
+
+            }
+            return result;
+        }
+    }
+
+    Matrix transpose()
+    {
+        Matrix ans;
+        double **res = createMatrix(columns,rows);
+        for(int i=0; i<rows; i++)
+            for(int j=0; j<columns; j++)
+            {
+                res[j][i] = this->mat[i][j];
+            }
+        ans.setMatrix(res);
+        ans.setRows(columns);
+        ans.setColumns(rows);
+        return ans;
+    }
+
+    void print()
+    {
+        if(mat!=0)
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    if(fabs(mat[i][j]) > 0.001)
+                        cout<<setprecision(4)<<fixed<<this->mat[i][j]<<' ';
+                    else cout<<"0.0000"<<' ';
+                }
+                cout<<endl;
+            }
+    }
+    friend void operator << (ostream &out,  Matrix &s);
+    friend void operator >> (istream &in,  Matrix &s);
+};
+
+class ColumnVector : public Matrix
+{
+private:
+public:
+    ColumnVector() {}
+    ColumnVector(int dim) : Matrix(dim,1) {}
+    void multiply(double coef)
+    {
+        for(int i=0; i<getRows(); i++)
+        {
+            addEntry(i,0,getMatrix()[i][0]*coef);
+        }
+    }
+
+    double diffLength(ColumnVector V)
+    {
+        double res = 0;
+        for(int i=0; i<V.getRows(); i++)
+        {
+            res += (V.getMatrix()[i][0] - getMatrix()[i][0]) * (V.getMatrix()[i][0] - getMatrix()[i][0]);
+        }
+        return sqrt(res);
+    }
+    void operator = (Matrix  obj)
+    {
+        setMatrix(obj.getMatrix());
+        setRows(obj.getRows());
+        setColumns(obj.getColumns());
+    }
+
+    Matrix operator * (Matrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        ColumnVector res (firstOperand.getRows());
+        res.setMatrix(result.getMatrix());
+        res = result;
+        return res;
+    }
+};
+
+class SquareMatrix : public Matrix
+{
+public:
+    SquareMatrix() {}
+
+    SquareMatrix(int dim) : Matrix(dim,dim) {}
+
+    void operator = (Matrix  obj)
+    {
+        setMatrix(obj.getMatrix());
+        setRows(obj.getRows());
+        setColumns(obj.getColumns());
+    }
+
+    SquareMatrix operator + (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand + secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+
+    SquareMatrix operator - (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand - secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+
+    SquareMatrix operator * (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+
+    ColumnVector operator * (ColumnVector & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        ColumnVector res;
+        res = result;
+        return res;
+    }
+    double det();
+    double** solve(ColumnVector );
+    double** invert();
+    void jacobi(ColumnVector, double );
+    void gauss_seidel (ColumnVector, double);
+};
+
+void  operator << (ostream &out,  Matrix &s)
+{
+    s.print();
+}
+
+void operator >> (istream &in,  Matrix &s)
+{
+    double value;
+    for(int i=0; i<s.getRows(); i++)
+        for(int j=0; j<s.getColumns(); j++)
+        {
+            cin>>value;
+            s.addEntry(i,j,value);
+        }
+}
+
+class IdentityMatrix : public SquareMatrix
+{
+public:
+    IdentityMatrix() {}
+
+    IdentityMatrix(int dim)
+    {
+        setRows(dim);
+        setColumns(dim);
+        setMatrix(createMatrix(dim,dim));
+        for(int i=0; i<dim; i++)
+            for(int j=0; j<dim; j++)
+            {
+                if(i==j)
+                {
+                    addEntry(i,i,1);
+                }
+
+                else
+                {
+                    addEntry(i,j,0);
+                }
+            }
+    }
+};
+
+class EliminationMatrix : public SquareMatrix
+{
+public:
+    EliminationMatrix() {}
+    EliminationMatrix(int dim)
+    {
+        setRows(dim);
+        setColumns(dim);
+        setMatrix(createMatrix(dim,dim));
+        for(int i=0; i<dim; i++)
+            for(int j=0; j<dim; j++)
+            {
+                if(i==j)
+                {
+                    addEntry(i,i,1);
+                }
+
+                else
+                {
+                    addEntry(i,j,0);
+                }
+            }
+    }
+
+    void nullify (Matrix A, int i, int j, int pivRow, int pivCol)
+    {
+
+        double pivot = A.getMatrix()[pivRow][pivCol];
+        addEntry(i,j, -1 * (A.getMatrix()[i][j] / pivot));
+    }
+
+    Matrix operator * (Matrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+};
+
+class PermutationMatrix : public SquareMatrix
+{
+public:
+    PermutationMatrix(int dim, int i1, int i2)
+    {
+        setRows(dim);
+        setColumns(dim);
+        setMatrix(createMatrix(dim,dim));
+        for(int i=0; i<dim; i++)
+            for(int j=0; j<dim; j++)
+            {
+                if(i==j&&i!=i1&&i!=i2)
+                {
+                    addEntry(i,i,1);
+                }
+
+                else
+                {
+                    addEntry(i,j,0);
+                }
+            }
+        addEntry(i1,i2,1);
+        addEntry(i2,i1,1);
+    }
+
+    Matrix operator * (Matrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+};
+
+double SquareMatrix::det ()
+{
+    double** grid = getMatrix();
+    SquareMatrix matrix(getRows());
+    matrix.setMatrix(grid);
+    double result = 1;
+    int i = 0;
+    int j = 0;
+    int steps = 1;
+    while (i<getRows())
+    {
+        double currentMax = fabs(matrix.getMatrix()[i][j]);
+        int currentMaxRow = i;
+        for(int row = i + 1; row < getRows(); row++)
+        {
+            if(fabs(matrix.getMatrix() [row][j]) > currentMax)
+            {
+                currentMax = fabs(matrix.getMatrix()[row][j]);
+                currentMaxRow = row;
+            }
+        }
+
+        if(currentMax == 0 )
+        {
+
+            return 0;
+        }
+
+        if(currentMaxRow!=i)
+        {
+            PermutationMatrix permutation(getRows(),i,currentMaxRow);
+            matrix = permutation * matrix;
+            steps++;
+        }
+
+        double flag = 0;
+        for(int row = i + 1; row<getRows(); row++)
+        {
+            flag += fabs(matrix.getMatrix()[row][j]);
+        }
+
+        if(flag!=0)
+            for(int row = i + 1; row < getRows(); row++)
+            {
+                EliminationMatrix elimination(getRows());
+                elimination.nullify(matrix,row,j,i,j);
+                matrix = elimination * matrix;
+                steps++;
+            }
+        i++;
+        j++;
+    }
+    grid = matrix.getMatrix();
+    for(int i=0; i<getColumns(); i++)
+    {
+        result *= grid[i][i];
+    }
+    return result;
+}
+
+double** SquareMatrix :: solve (ColumnVector V)
+{
+    double** grid = getMatrix();
+    SquareMatrix matrix(getRows());
+    matrix.setMatrix(grid);
+    int i = 0;
+    int j = 0;
+    int steps = 0;
+    steps++;
+    while (i<getRows())
+    {
+        double currentMax = fabs(matrix.getMatrix()[i][j]);
+        int currentMaxRow = i;
+        for(int row = i + 1; row < getRows(); row++)
+        {
+            if(fabs(matrix.getMatrix() [row][j]) > currentMax)
+            {
+                currentMax = fabs(matrix.getMatrix()[row][j]);
+                currentMaxRow = row;
+            }
+        }
+
+        if(currentMax == 0 )
+        {
+
+            return nullptr;
+        }
+        if(currentMaxRow!=i)
+        {
+            PermutationMatrix permutation(getRows(),i,currentMaxRow);
+            matrix = permutation * matrix;
+            V = permutation * V;
+            steps++;
+        }
+
+        double flag = 0;
+        for(int row = i + 1; row<getRows(); row++)
+        {
+            flag += fabs(matrix.getMatrix()[row][j]);
+        }
+
+        for(int row = i + 1; row < getRows(); row++)
+        {
+            if(flag==0)break;
+            flag -= fabs(matrix.getMatrix()[row][j]);
+            EliminationMatrix elimination(getRows());
+            elimination.nullify(matrix,row,j,i,j);
+            matrix = elimination * matrix;
+            V = elimination * V;
+            steps++;
+        }
+        i++;
+        j++;
+    }
+    i--;
+    j--;
+    while (i >= 0)
+    {
+        double flag = 0;
+        for(int row = i - 1; row >= 0; row--)
+        {
+            flag += fabs(matrix.getMatrix()[row][j]);
+        }
+
+        if(flag!=0)
+            for(int row = i - 1; row >= 0; row--)
+            {
+                EliminationMatrix elimination(getRows());
+                elimination.nullify(matrix,row,j,i,j);
+                matrix = elimination * matrix;
+                V = elimination * V;
+                steps++;
+            }
+        i--;
+        j--;
+    }
+    grid = matrix.getMatrix();
+    for(int i=0; i<getRows(); i++)
+    {
+        V.addEntry(i,0,V.getMatrix()[i][0] / grid[i][i]);
+        grid[i][i] = 1;
+    }
+    matrix.setMatrix(grid);
+    return V.getMatrix();
+}
+double** SquareMatrix::invert()
+{
+    double** grid = getMatrix();
+    SquareMatrix matrix(getRows());
+    matrix.setMatrix(grid);
+    IdentityMatrix I (getRows());
+    Matrix augmented (getRows(), 2 * getColumns());
+    double** augmentedMatrix = createMatrix(getRows(), 2 * getColumns());
+    for(int i=0; i<getRows(); i++)
+        for(int j=0; j<getColumns(); j++)
+        {
+            augmentedMatrix[i][j] = grid[i][j];
+        }
+    for(int i=0; i<getRows(); i++)
+        for(int j=getColumns(); j<2 * getColumns(); j++)
+        {
+            augmentedMatrix[i][j] = I.getMatrix()[i][j - getColumns()];
+        }
+    augmented.setMatrix(augmentedMatrix);
+    int i = 0;
+    int j = 0;
+    int steps = 0;
+    steps++;
+    while (i<getRows())
+    {
+        double currentMax = fabs(augmented.getMatrix()[i][j]);
+        int currentMaxRow = i;
+        for(int row = i + 1; row < getRows(); row++)
+        {
+            if(fabs(augmented.getMatrix() [row][j]) > currentMax)
+            {
+                currentMax = fabs(augmented.getMatrix()[row][j]);
+                currentMaxRow = row;
+            }
+        }
+
+        if(currentMax == 0 )
+        {
+            return nullptr;
+        }
+        if(currentMaxRow!=i)
+        {
+            PermutationMatrix permutation(getRows(),i,currentMaxRow);
+            augmented = permutation * augmented;
+            steps++;
+        }
+
+        double flag = 0;
+        for(int row = i + 1; row<getRows(); row++)
+        {
+            flag += fabs(augmented.getMatrix()[row][j]);
+        }
+
+        if(flag!=0)
+            for(int row = i + 1; row < getRows(); row++)
+            {
+                EliminationMatrix elimination(getRows());
+                elimination.nullify(augmented,row,j,i,j);
+                augmented = elimination * augmented;
+                steps++;
+
+            }
+        i++;
+        j++;
+    }
+
+    i--;
+    j--;
+    while (i >= 0)
+    {
+        double flag = 0;
+        for(int row = i - 1; row >= 0; row--)
+        {
+            flag += fabs(augmented.getMatrix()[row][j]);
+        }
+        if(flag!=0)
+            for(int row = i - 1; row >= 0; row--)
+            {
+                EliminationMatrix elimination(getRows());
+                elimination.nullify(augmented,row,j,i,j);
+                augmented = elimination * augmented;
+                steps++;
+            }
+        i--;
+        j--;
+    }
+    augmentedMatrix = augmented.getMatrix();
+    for(int i=0; i<getRows(); i++)
+    {
+        double den = augmentedMatrix[i][i];
+        augmentedMatrix[i][i] = 1;
+        for(int j=getColumns(); j<2 * getColumns(); j++)
+        {
+            augmentedMatrix[i][j] /= den;
+        }
+    }
+    augmented.setMatrix(augmentedMatrix);
+    double** res = createMatrix(getRows(),getColumns());
+    for(int i=0; i<getRows(); i++)
+    {
+        for(int j=getColumns(); j<2 * getColumns(); j++)
+        {
+            res[i][j-getColumns()] = augmentedMatrix[i][j];
+        }
+    }
+    return res;
+}
+
+void SquareMatrix :: jacobi (ColumnVector V, double accuracy)
+{
+    bool notApplicable = false;
+    if(det()==0) notApplicable = true;
+    double diagonal = 0, sum = 0;
+    for(int i=0; i<getRows(); i++)
+    {
+        if(notApplicable)
+            break;
+        for(int j=0; j<getColumns(); j++)
+        {
+            if(i==j)
+            {
+                diagonal = getMatrix()[i][j];
+            }
+            else sum += getMatrix()[i][j];
+        }
+        if(sum >= diagonal)
+        {
+            notApplicable = true;
+        }
+        sum = 0;
+    }
+    if(!notApplicable)
+    {
+        SquareMatrix alpha (getRows());
+        ColumnVector beta (getRows());
+        double currentAccuracy = 100;
+        double** grid = createMatrix(getRows(),getColumns());
+        for(int i=0; i<getRows(); i++)
+        {
+            grid[i][i] = 0;
+        }
+        for(int i=0; i<getRows(); i++)
+            for(int j=0; j<getColumns(); j++)
+            {
+                if(i != j)
+                {
+                    grid[i][j] = -1 * (getMatrix()[i][j] / getMatrix()[i][i]);
+                }
+            }
+        alpha.setMatrix(grid);
+        double** vec = createMatrix(V.getRows(), 1);
+        for(int i=0; i<V.getRows(); i++)
+        {
+            vec[i][0] = V.getMatrix()[i][0] / getMatrix()[i][i];
+        }
+        beta.setMatrix(vec);
+        cout<<"alpha:"<<endl;
+        cout<<alpha;
+        cout<<"beta:"<<endl;
+        cout<<beta;
+        ColumnVector current, next;
+        current = beta;
+        int iteration = 0;
+        while(currentAccuracy > accuracy)
+        {
+            cout<<"x("<<iteration<<"):"<<endl;
+            iteration++;
+            cout<<current;
+            next = alpha * current + beta;
+            currentAccuracy = current.diffLength(next);
+            cout<<"e: " <<currentAccuracy<<endl;
+            current = next;
+        }
+        cout<<"x("<<iteration<<"):"<<endl;
+        cout<<current;
+    }
+    else
+    {
+        cout<<"The method is not applicable!"<<endl;
+    }
+}
+
+void SquareMatrix :: gauss_seidel (ColumnVector V, double accuracy)
+{
+    bool notApplicable = false;
+    if(det()==0) notApplicable = true;
+    double diagonal = 0, sum = 0;
+    for(int i=0; i<getRows(); i++)
+    {
+        if(notApplicable)
+            break;
+        for(int j=0; j<getColumns(); j++)
+        {
+            if(i==j)
+            {
+                diagonal = getMatrix()[i][j];
+            }
+            else sum += getMatrix()[i][j];
+        }
+        if(sum >= diagonal)
+        {
+            notApplicable = true;
+        }
+        sum = 0;
+    }
+    if(!notApplicable)
+    {
+        SquareMatrix alpha (getRows());
+        ColumnVector beta (getRows());
+        SquareMatrix B(getRows());
+        SquareMatrix C(getRows());
+        SquareMatrix I_B(getRows());
+        SquareMatrix I_B_inverse(getRows());
+        double currentAccuracy = 100;
+        double** grid_Alpha = createMatrix(getRows(),getColumns());
+        double** grid_B = createMatrix(getRows(),getColumns());
+        double** grid_C = createMatrix(getRows(),getColumns());
+        double** grid_I_B = createMatrix(getRows(),getColumns());
+        double** grid_I_B_inverse = createMatrix(getRows(),getColumns());
+        double** vec = createMatrix(V.getRows(), 1);
+        for(int i=0; i<getRows(); i++)
+        {
+            grid_Alpha[i][i] = 0;
+        }
+        for(int i=0; i<getRows(); i++)
+            for(int j=0; j<getColumns(); j++)
+            {
+                if(i != j)
+                {
+                    grid_Alpha[i][j] = -1 * (getMatrix()[i][j] / getMatrix()[i][i]);
+                }
+            }
+        alpha.setMatrix(grid_Alpha);
+        for(int i=0; i<V.getRows(); i++)
+        {
+            vec[i][0] = V.getMatrix()[i][0] / getMatrix()[i][i];
+        }
+        beta.setMatrix(vec);
+        cout<<"beta:"<<endl;
+        cout<<beta;
+        cout<<"alpha:"<<endl;
+        cout<<alpha;
+        for(int i=0; i<getRows(); i++)
+            for(int j=0; j<getColumns(); j++)
+            {
+                if(i>j)
+                {
+                    grid_B[i][j] = alpha.getMatrix()[i][j];
+                }
+                else grid_B[i][j] = 0;
+            }
+        B.setMatrix(grid_B);
+        cout<<"B:"<<endl;
+        cout<<B;
+        for(int i=0; i<getRows(); i++)
+            for(int j=0; j<getColumns(); j++)
+            {
+                if(i<j)
+                {
+                    grid_C[i][j] = alpha.getMatrix()[i][j];
+                }
+                else grid_C[i][j] = 0;
+            }
+        C.setMatrix(grid_C);
+        cout<<"C:"<<endl;
+        cout<<C;
+        for(int i=0; i<getRows(); i++)
+            for(int j=0; j<getColumns(); j++)
+            {
+                if(i==j)
+                {
+                    grid_I_B[i][j] = 1;
+                }
+                else grid_I_B[i][j] = -1*B.getMatrix()[i][j];
+            }
+        I_B.setMatrix(grid_I_B);
+        cout<<"I-B:"<<endl;
+        cout<<I_B;
+        grid_I_B_inverse = I_B.invert();
+        I_B_inverse.setMatrix(grid_I_B_inverse);
+        cout<<"(I-B)_-1:"<<endl;
+        cout<<I_B_inverse;
+        ColumnVector current, next;
+        current = beta;
+        int iteration = 0;
+        SquareMatrix Left (getRows());
+        Left = I_B_inverse * C;
+        SquareMatrix Right(getRows());
+        Right = I_B_inverse * beta;
+        while(currentAccuracy > accuracy)
+        {
+            cout<<"x("<<iteration<<"):"<<endl;
+            iteration++;
+            cout<<current;
+            next = Left * current + Right;
+            currentAccuracy = current.diffLength(next);
+            cout<<"e: " <<currentAccuracy<<endl;
+            current = next;
+        }
+        cout<<"x("<<iteration<<"):"<<endl;
+        cout<<current;
+    }
+    else
+    {
+        cout<<"The method is not applicable!"<<endl;
+    }
+}
+int main()
+{
+
+    int dimension_of_A;
+    int dimension_of_V;
+    double accuracy;
+    cin >> dimension_of_A;
+    SquareMatrix A (dimension_of_A);
+    cin>>A;
+    cin>>dimension_of_V;
+    ColumnVector V (dimension_of_V);
+    cin>>V;
+    cin>>accuracy;
+    A.gauss_seidel(V, accuracy);
+    return 0;
+}
+double** createMatrix(int rows,int columns)
+{
+    double **res = new double* [rows];
+    for(int i=0; i<rows; i++)
+    {
+        res[i] = new double [columns];
+    }
+    return res;
+}
+void print(double** arr,int rows,int columns)
+{
+    if(arr!=0)
+    {
+        for(int i=0; i<rows; i++)
+        {
+            for(int j=0; j<columns; j++)
+            {
+                cout<<arr[i][j]<<' ';
+            }
+            cout<<endl;
+        }
+    }
+}

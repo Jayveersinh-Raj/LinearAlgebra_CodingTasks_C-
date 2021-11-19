@@ -1,0 +1,324 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int **createMatrix(int,int);
+void print(int **,int,int);
+
+class Matrix
+{
+private:
+    int rows;
+    int columns;
+    int **mat;
+public:
+    Matrix() {}
+
+    Matrix(int rows,int columns)
+    {
+        this->rows = rows;
+        this->columns = columns;
+        mat = new int* [rows];
+        for(int i=0; i<rows; i++)
+        {
+            mat[i] = new int [columns];
+            memset(mat[i],0,columns);
+        }
+    };
+
+    void setRows(int r)
+    {
+        this->rows = r;
+    }
+
+    int getRows()
+    {
+        return this->rows;
+    }
+
+    void setColumns(int c)
+    {
+        this->columns = c;
+    }
+
+    int getColumns()
+    {
+        return this->columns;
+    }
+
+    void setMatrix(int ** matrix)
+    {
+        this->mat = matrix;
+    }
+
+    int ** getMatrix()
+    {
+        return mat;
+    }
+
+    void addEntry(int row,int col,int value)
+    {
+        mat[row][col] = value;
+    }
+
+    Matrix operator +(Matrix  &obj)
+    {
+        Matrix ans;
+        int **res = createMatrix(rows,columns);
+        res = addMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    int ** addMatrices(int **M,int rows,int columns)
+    {
+
+        if(rows!=this->rows || columns!=this->columns)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return nullptr;
+        }
+        else
+        {
+            int ** result = 0;
+            result = createMatrix(rows,columns);
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    result[i][j] = this->mat[i][j] + M[i][j];
+                }
+            }
+            return result;
+        }
+    }
+
+    Matrix operator -(Matrix  &obj)
+    {
+        Matrix ans;
+        int **res = createMatrix(rows,columns);
+        res = subtractMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    int ** subtractMatrices(int **M,int rows,int columns)
+    {
+
+        if(rows!=this->rows || columns!=this->columns)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return 0;
+        }
+        else
+        {
+            int ** result = 0;
+            result = createMatrix(rows,columns);
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    result[i][j] = this->mat[i][j] - M[i][j];
+                }
+            }
+            return result;
+        }
+    }
+
+    Matrix operator *(Matrix  &obj)
+    {
+        Matrix ans;
+        int **res = createMatrix(rows,columns);
+        res = multiplyMatrices(obj.getMatrix(),obj.rows,obj.columns);
+        ans.setMatrix(res);
+        ans.setRows(obj.rows);
+        ans.setColumns(obj.columns);
+        return ans;
+    }
+
+    int ** multiplyMatrices(int **M,int rows,int columns)
+    {
+        if(this->columns!=rows)
+        {
+            cout<<"Error: the dimensional problem occurred"<<endl;
+            return 0;
+        }
+        else
+        {
+            int ** result = 0;
+            result = createMatrix(this->rows,columns);
+            for(int i=0; i<this->rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    int res = 0;
+                    for(int k=0; k<rows; k++)
+                    {
+                        res+=this->mat[i][k]*M[k][j];
+                    }
+                    result[i][j] = res;
+                }
+
+            }
+            return result;
+        }
+    }
+
+    Matrix transpose()
+    {
+        Matrix ans;
+        int **res = createMatrix(columns,rows);
+        for(int i=0; i<rows; i++)
+            for(int j=0; j<columns; j++)
+            {
+                res[j][i] = this->mat[i][j];
+            }
+        ans.setMatrix(res);
+        ans.setRows(columns);
+        ans.setColumns(rows);
+        return ans;
+    }
+
+    void print()
+    {
+        if(mat!=0)
+            for(int i=0; i<rows; i++)
+            {
+                for(int j=0; j<columns; j++)
+                {
+                    cout<<mat[i][j]<<' ';
+                }
+                cout<<endl;
+            }
+    }
+};
+
+class SquareMatrix : public Matrix
+{
+private:
+    int dimension;
+    int**mat;
+public:
+    SquareMatrix() {}
+
+    SquareMatrix(int dim) : Matrix(dim,dim) {}
+
+    friend void operator << (ostream &out, SquareMatrix &s);
+    friend void operator >> (istream &in,  SquareMatrix &s);
+
+    void operator = (Matrix  obj)
+    {
+        setMatrix(obj.getMatrix());
+        setRows(obj.getRows());
+        setColumns(obj.getColumns());
+    }
+
+    SquareMatrix operator + (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand + secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+
+    SquareMatrix operator - (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand - secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+
+    SquareMatrix operator * (SquareMatrix & obj)
+    {
+        Matrix firstOperand(this->getRows(),this->getColumns());
+        firstOperand.setMatrix(getMatrix());
+        Matrix secondOperand (obj.getRows(),obj.getColumns());
+        secondOperand.setMatrix(obj.getMatrix());
+        Matrix result = firstOperand * secondOperand;
+        SquareMatrix res;
+        res = result;
+        return res;
+    }
+};
+
+void  operator << (ostream &out,  SquareMatrix &s)
+{
+    s.print();
+}
+
+void operator >> (istream &in,  SquareMatrix &s)
+{
+    int value;
+    for(int i=0; i<s.getRows(); i++)
+        for(int j=0; j<s.getColumns(); j++)
+        {
+            cin>>value;
+            s.addEntry(i,j,value);
+        }
+}
+
+int main()
+{
+    int dimension_of_A;
+    cin>>dimension_of_A;
+    SquareMatrix A (dimension_of_A);
+    cin>>A;
+    int dimension_of_B;
+    cin>>dimension_of_B;
+    SquareMatrix B (dimension_of_B);
+    cin>>B;
+    int dimension_of_C;
+    cin>>dimension_of_C;
+    SquareMatrix C (dimension_of_C);
+    cin>>C;
+    SquareMatrix D (dimension_of_A);
+    D = A + B;
+    SquareMatrix E (dimension_of_A);
+    E = B - A;
+    SquareMatrix F (dimension_of_A);
+    F = C * A;
+    SquareMatrix G (dimension_of_A);
+    G = A.transpose();
+    cout<<D;
+    cout<<E;
+    cout<<F;
+    cout<<G;
+    return 0;
+}
+int** createMatrix(int rows,int columns)
+{
+    int **res = new int* [rows];
+    for(int i=0; i<rows; i++)
+    {
+        res[i] = new int [columns];
+        memset(res[i],0,columns);
+    }
+    return res;
+}
+
+void print(int ** arr,int rows,int columns)
+{
+    if(arr!=0)
+    {
+        for(int i=0; i<rows; i++)
+        {
+            for(int j=0; j<columns; j++)
+            {
+                cout<<arr[i][j]<<' ';
+            }
+            cout<<endl;
+        }
+    }
+}
